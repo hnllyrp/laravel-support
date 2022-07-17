@@ -1,0 +1,36 @@
+{
+    "name": "hnllyrp/laravel-support",
+    "description": "The laravel support library",
+    "keywords": [
+        "php",
+        "library",
+        "laravel"
+    ],
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "hnllyrp",
+            "email": "hnllyrp@126.com"
+        }
+    ],
+    "require": {
+        "php": "^7.2.5|^8.0",
+        "laravel/framework": "^6.20.26"
+    },
+    "autoload": {
+        "psr-4": {
+            "Hnllyrp\\LaravelSupport\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Hnllyrp\\LaravelSupport\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}

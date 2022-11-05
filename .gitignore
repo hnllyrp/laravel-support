@@ -1,4 +1,12 @@
 *.DS_Store
+/node_modules
+/public/hot
+/public/storage
+/storage/*.key
 /vendor
 /.idea
-/composer.lock
+/.vscode
+.env
+.phpunit.result.cache
+*.lock
+*.log

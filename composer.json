@@ -16,16 +16,27 @@
     ],
     "require": {
         "php": "^7.2.5|^8.0",
+        "firebase/php-jwt": "^5.2",
         "laravel/framework": "^6.20.26"
     },
     "autoload": {
         "psr-4": {
             "Hnllyrp\\LaravelSupport\\": "src/"
-        }
+        },
+        "files": [
+            "src/Support/helpers.php"
+        ]
     },
     "autoload-dev": {
         "psr-4": {
             "Hnllyrp\\LaravelSupport\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Hnllyrp\\LaravelSupport\\SupportServiceProvider"
+            ]
         }
     },
     "config": {

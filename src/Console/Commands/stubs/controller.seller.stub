@@ -1,0 +1,144 @@
+<?php
+
+namespace DummyNamespace;
+
+use DummyNamespace\BaseController as Controller;
+use Illuminate\Http\Request;
+
+class DummyClass extends Controller
+{
+
+    public function __construct(
+    )
+    {
+        //
+    }
+
+    protected function initialize()
+    {
+        // 初始化 每页分页数量
+        $this->init_params();
+    }
+
+    /**
+     * Display a listing of the resource.
+     * @param Request $request
+     * @return \Illuminate\Http\Response
+     */
+    public function index(Request $request)
+    {
+        $id = (int)$request->input('id', 0);
+
+
+        $filter = [];
+        $offset = $this->pageLimit('route_name', $this->page_num);
+
+        $result = [];
+
+        $total = $result['total'] ?? 0;
+        $list = $result['list'] ?? [];
+
+        $page = $this->pageShow($total);
+        $this->assign('page', $page);
+        $this->assign('list', $list);
+
+        $is_ajax = $request->input('is_ajax');
+        if ($is_ajax == 1) {
+            $respond['content'] = 'query.blade.php';// $this->fetch('admin.sellerfollow.library.index_query');
+            $respond['filter'] = $filter ?? [];
+            $respond['page_count'] = $page['page_count'] ?? 1;
+            return response()->json($respond);
+        }
+
+        return $this->display();
+    }
+
+
+    /**
+     * Show the form for creating a new resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function create()
+    {
+        //
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function store(Request $request)
+    {
+        //
+    }
+
+    /**
+     * Display the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function show($id)
+    {
+        //
+    }
+
+   /**
+    * Show the form for editing the specified resource.
+    *
+    * @param  int  $id
+    * @return \Illuminate\Http\Response
+    */
+   public function edit($id)
+   {
+       $info = [];
+       $this->assign('info', $info);
+
+       return $this->display();
+   }
+
+   /**
+    * Update the specified resource in storage.
+    *
+    * @param  \Illuminate\Http\Request  $request
+    * @param  int  $id
+    * @return \Illuminate\Http\Response
+    */
+   public function update(Request $request, $id)
+   {
+       $data = $request->input('data', []);
+
+       if ($id) {
+
+           $res = true;
+
+           if ($res) {
+                return response()->json(['error' => 0, 'msg' => trans('admin/common.handler') . trans('admin/common.success')]);
+           }
+       }
+
+       return response()->json(['error' => 1, 'msg' => trans('admin/common.handler') . trans('admin/common.success')]);
+   }
+
+   /**
+    * Remove the specified resource from storage.
+    *
+    * @param  int  $id
+    * @return \Illuminate\Http\Response
+    */
+   public function destroy($id)
+   {
+       if ($id) {
+           $res = [];
+
+           if ($res) {
+               return response()->json(['error' => 0, 'msg' => trans('admin/common.delete') . trans('admin/common.success')]);
+           }
+       }
+
+       return response()->json(['error' => 1, 'msg' => trans('admin/common.delete') . trans('admin/common.success')]);
+   }
+}

@@ -19,6 +19,9 @@
         "firebase/php-jwt": "^5.2",
         "laravel/framework": "^6.20.26"
     },
+    "require-dev": {
+        "reliese/laravel": "^0.0.19"
+    },
     "autoload": {
         "psr-4": {
             "Hnllyrp\\LaravelSupport\\": "src/"

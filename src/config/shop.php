@@ -13,4 +13,7 @@ return [
     // 关闭原因
     'close_reason' => 'The web is closed!',
 
+    'open_oss' => 0,
+    'no_picture' => 'no_picture.png',
+
 ];

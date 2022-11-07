@@ -15,6 +15,11 @@ class SupportServiceProvider extends ServiceProvider
      */
     public function register()
     {
+
+        if ($this->app->environment() == 'local') {
+            // 重写命令行 php artisan code:models
+            $this->app->register(\Hnllyrp\LaravelSupport\Providers\CodersServiceProvider::class);
+        }
     }
 
     /**
@@ -23,14 +28,14 @@ class SupportServiceProvider extends ServiceProvider
     public function boot()
     {
         // 自定义配置文件
-        $this->mergeConfigFrom(__DIR__.'/config/shop.php', 'support');
+        $this->mergeConfigFrom(__DIR__ . '/config/shop.php', 'support');
         // 自定义语言包
-        $this->loadTranslationsFrom(__DIR__.'/resources/lang', 'support');// exp:  trans('develop::common.test')
+        $this->loadTranslationsFrom(__DIR__ . '/resources/lang', 'support');// exp:  trans('develop::common.test')
         // 自定义视图
         $this->loadViewsFrom(__DIR__ . '/resources/views', 'support'); // exp: return view('support::admin.index.index');
 
         $this->commands([
-           AppCommand::class
+            AppCommand::class
         ]);
     }
 

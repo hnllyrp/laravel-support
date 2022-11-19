@@ -4,12 +4,12 @@ namespace Hnllyrp\LaravelSupport\Middleware;
 
 use Closure;
 use Hnllyrp\LaravelSupport\Services\Common\JwtService;
-use Hnllyrp\LaravelSupport\Traits\ApiResponse;
+use Hnllyrp\LaravelSupport\Support\Traits\ApiResponse;
 
 /**
  * 验证用户登录token  使用jwt
  */
-class VerifyToken
+class ApiToken
 {
     use ApiResponse;
 
@@ -43,18 +43,6 @@ class VerifyToken
      */
     protected function authorization($token = null, $item = 'user_id', $header = 'token')
     {
-        if (request()->hasHeader($header)) {
-            $token = request()->header($header);
-        } elseif (request()->has($header)) {
-            $token = request()->get($header);
-        }
-
-        if (is_null($token)) {
-            return 0;
-        }
-
-        $payload = JwtService::decodeToken($token);
-
-        return $payload ? collect($payload)->get($item) : 0;
+        return JwtService::checkUserToken($token, $item, $header);
     }
 }

@@ -4,6 +4,7 @@ namespace Hnllyrp\LaravelSupport\Services\Common;
 
 use Firebase\JWT\ExpiredException;
 use Firebase\JWT\JWT;
+use Firebase\JWT\Key;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
 
@@ -34,15 +35,15 @@ class JwtService
 
     /**
      * 获取token
-     * @param $token
+     * @param $jwt
      * @return int|mixed
      */
-    public static function decodeToken($token)
+    public static function decodeToken($jwt)
     {
         $key = config('jwt.key');
 
         try {
-            $data = JWT::decode($token, $key, ['HS256']);
+            $data = JWT::decode($jwt, new Key($key, 'HS256'));
         } catch (ExpiredException $expiredException) {
             Log::error('JWTDecode: ' . $expiredException->getMessage()); // token过期
             return 0;
@@ -69,18 +70,22 @@ class JwtService
     }
 
     /**
-     * 获取会员token
+     * 获取会员token并检查登录是否过期
      * @param null $token
      * @param string $item
      * @param string $header
      * @return int|mixed
      */
-    public static function getUserToken($token = null, string $item = 'user_id', string $header = 'token')
+    public static function checkUserToken($token = null, string $item = 'user_id', string $header = 'token')
     {
-        if (request()->hasHeader($header)) {
-            $token = request()->header($header);
-        } elseif (request()->has($header)) {
-            $token = request()->get($header);
+        if (is_null($token)) {
+            if (request()->hasHeader($header)) {
+                $token = request()->header($header);
+            } elseif (request()->has($header)) {
+                $token = request()->get($header);
+            } else {
+                $token = request()->bearerToken(); // 推荐 Authorization: Bearer <token>
+            }
         }
 
         if (is_null($token)) {

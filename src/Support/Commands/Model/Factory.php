@@ -1,6 +1,6 @@
 <?php
 
-namespace Hnllyrp\LaravelSupport\Console\Commands\Model;
+namespace Hnllyrp\LaravelSupport\Support\Commands\Model;
 
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Filesystem\Filesystem;
@@ -158,7 +158,6 @@ class Factory extends \Reliese\Coders\Model\Factory
         // 自定义Base目录
         $customBasePath = $this->config($model->getBlueprint(), 'base_files_path', 'Base');
 
-        // $template = $this->prepareTemplate($model, 'user_model');
         $template = $this->prepareTemplate($model, 'user_model');
         $template = str_replace('{{namespace}}', $model->getNamespace(), $template);
         $template = str_replace('{{class}}', $model->getClassName(), $template);

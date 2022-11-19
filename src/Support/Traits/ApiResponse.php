@@ -31,7 +31,6 @@ trait ApiResponse
      */
     protected function setErrorCode($errorCode)
     {
-        $this->httpCode = $errorCode;
         $this->errorCode = $errorCode;
         return $this;
     }
@@ -51,7 +50,6 @@ trait ApiResponse
     protected function setHttpCode($httpCode)
     {
         $this->httpCode = $httpCode;
-        $this->errorCode = $httpCode;
         return $this;
     }
 
@@ -101,12 +99,12 @@ trait ApiResponse
     public function failed(string $msg = '', $data = [], array $header = [])
     {
         return $this->response([
-            'code' => 0,
+            'code' => $this->getErrorCode() ?: 0,
             'status' => 'fail',
-            'msg' => $this->getMessage() ?: $msg,
+            'msg' => $msg,
             'data' => $data,
             'time' => request()->server('REQUEST_TIME'),
-            'http_code' => $this->getErrorCode() ?: 400,
+            'http_code' => $this->getHttpCode() ?: 400,
         ])->withHeaders($header);
     }
 
@@ -117,10 +115,10 @@ trait ApiResponse
      */
     public function message(string $msg = '', array $header = [])
     {
-        $this->response([
+        return $this->response([
             'code' => 1,
             'status' => 'success',
-            'msg' => $this->getMessage() ?: $msg,
+            'msg' => $msg,
             'time' => request()->server('REQUEST_TIME'),
             'http_code' => $this->getHttpCode(),
         ])->withHeaders($header);

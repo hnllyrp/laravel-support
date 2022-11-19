@@ -1,17 +1,18 @@
 <?php
 
-namespace Hnllyrp\LaravelSupport\Console\Commands\Model;
+namespace Hnllyrp\LaravelSupport\Support\Commands\Model;
 
 use Illuminate\Contracts\Config\Repository;
-use Hnllyrp\LaravelSupport\Console\Commands\Model\Factory;
+use Hnllyrp\LaravelSupport\Support\Commands\Model\Factory;
+use Reliese\Coders\Console\CodeModelsCommand as Command;
 
-class CodeModelsCommand extends \Reliese\Coders\Console\CodeModelsCommand
+class CodeModelsCommand extends Command
 {
 
     /**
      * Create a new command instance.
      *
-     * @param \Hnllyrp\LaravelSupport\Console\Commands\Model\Factory $models
+     * @param \Hnllyrp\LaravelSupport\Support\Commands\Model\Factory $models
      * @param \Illuminate\Contracts\Config\Repository $config
      */
     public function __construct(Factory $models, Repository $config)

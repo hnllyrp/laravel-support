@@ -2,12 +2,14 @@
 
 namespace Hnllyrp\LaravelSupport\Providers;
 
-use Hnllyrp\LaravelSupport\Console\Commands\Model\Factory as ModelFactory;
+use Hnllyrp\LaravelSupport\Support\Commands\Model\CodeModelsCommand;
+use Hnllyrp\LaravelSupport\Support\Commands\Model\Factory as ModelFactory;
 use Illuminate\Filesystem\Filesystem;
+use Reliese\Coders\CodersServiceProvider as ServiceProvider;
 use Reliese\Coders\Model\Config;
 use Reliese\Support\Classify;
 
-class CodersServiceProvider extends \Reliese\Coders\CodersServiceProvider
+class CodersServiceProvider extends ServiceProvider
 {
     /**
      * Register services.
@@ -34,6 +36,14 @@ class CodersServiceProvider extends \Reliese\Coders\CodersServiceProvider
      */
     public function boot()
     {
+        // 本地开发
+        if ($this->app->environment() == 'local' && config('app.debug')) {
+            $this->commands([
+                CodeModelsCommand::class
+            ]);
+        }
+
+
         if ($this->app->runningInConsole()) {
             // 发布配置文件
             $this->publishes([

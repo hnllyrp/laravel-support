@@ -14,7 +14,7 @@ class SendCommonMail extends Mailable implements ShouldQueue
     /**
      * @var
      */
-    protected $mailContent;
+    public $mailContent;
 
     /**
      * Create a new message instance.

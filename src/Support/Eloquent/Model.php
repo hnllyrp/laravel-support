@@ -2,12 +2,14 @@
 
 namespace Hnllyrp\LaravelSupport\Support\Eloquent;
 
-use Illuminate\Database\Eloquent\Model as Base;
+use Illuminate\Database\Eloquent\Model as EloquentModel;
 
 /**
  * 公共 Model 基类
+ * @method static findInSet($query, $column, $value)
+ * @method static whereHasIn(string $relation, ?\Closure $callable = null)
  */
-class Model extends Base
+class Model extends EloquentModel
 {
    /**
      * 提供一个MySQL支持的find_in_set()查询构建器
@@ -22,7 +24,7 @@ class Model extends Base
     {
         return $query->whereRaw("FIND_IN_SET(?, $column)", $value);
     }
-    
+
     /**
      * @param int $id
      * @param array $columns

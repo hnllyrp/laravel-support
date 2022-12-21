@@ -22,7 +22,8 @@ return [
      * Example: ['api/*']
      */
     'paths' => [
-        'api/*'
+        // '/*',
+        // 'api/*',
     ],
 
     /**
@@ -38,14 +39,15 @@ return [
      * Matches the request origin. `['*']` allows all origins. Wildcards can be used, eg `*.mydomain.com`
      */
     'allowed_origins' => [
-        // '*',
-        'http://localhost',
+        '*',
+        // 'http://localhost',
     ],
 
     /*
      * Patterns that can be used with `preg_match` to match the origin.
+     * exp: localhost:80, localhost:8080
      */
-    'allowed_origins_patterns' => [],
+    'allowed_origins_patterns' => ['/localhost:\d/'],
 
     /*
      * Sets the Access-Control-Allow-Headers response header. `['*']` allows all headers.
@@ -59,14 +61,15 @@ return [
      * Sets the Access-Control-Expose-Headers response header with these headers.
      */
     'exposed_headers' => [
-        'Authorization', 'authenticated'
+        // 'Authorization', 'authenticated'
     ],
 
     /*
      * Sets the Access-Control-Max-Age response header when > 0.
-     * 预检请求 缓存时间，0 禁止缓存  单位:秒 此处 24 小时
+     * 预检请求 缓存时间，0 禁止缓存  单位:秒 此处 7200 取 Chromium 上限 2小时
+     * https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers/Access-Control-Max-Age
      */
-    'max_age' => 3600 * 24,
+    'max_age' => 7200,
 
     /*
      * Sets the Access-Control-Allow-Credentials header.

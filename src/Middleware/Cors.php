@@ -18,18 +18,18 @@ class Cors
     /** @var \Illuminate\Contracts\Container\Container $container */
     protected $container;
 
-    private $allowedOrigins = [];
+    protected $allowedOrigins = [];
 
-    private $allowedOriginsPatterns = [];
-    private $allowedMethods = [];
-    private $allowedHeaders = [];
-    private $exposedHeaders = [];
-    private $supportsCredentials = false;
-    private $maxAge = 0;
+    protected $allowedOriginsPatterns = [];
+    protected $allowedMethods = [];
+    protected $allowedHeaders = [];
+    protected $exposedHeaders = [];
+    protected $supportsCredentials = false;
+    protected $maxAge = 0;
 
-    private $allowAllOrigins = false;
-    private $allowAllMethods = false;
-    private $allowAllHeaders = false;
+    protected $allowAllOrigins = false;
+    protected $allowAllMethods = false;
+    protected $allowAllHeaders = false;
 
     public function __construct(Container $container)
     {
@@ -47,16 +47,20 @@ class Cors
      */
     public function handle(Request $request, Closure $next)
     {
-        // return $this->simple($request, $next);
-
         // Check if we're dealing with CORS and if we should handle it
         if (!$this->shouldRun($request)) {
             return $next($request);
         }
 
-        // 非简单请求
-        // For Preflight, return the Preflight response
+        // 默认允许所有
+        if ($this->allowAllOrigins === true) {
+            $response = $next($request);
+            return $this->simple($request, $response);
+        }
+
+        // OPTIONS 预检请求
         if ($request->getMethod() === 'OPTIONS' && $request->headers->has('Access-Control-Request-Method')) {
+
             $response = $this->handlePreflightRequest($request);
 
             $this->varyHeader($response, 'Access-Control-Request-Method');
@@ -67,32 +71,67 @@ class Cors
         // Handle the request
         $response = $next($request);
 
+        // OPTIONS 预检请求
         if ($request->getMethod() === 'OPTIONS') {
             $this->varyHeader($response, 'Access-Control-Request-Method');
         }
 
         // 简单请求
-        return $this->addHeaders($request, $response);
+        if (!$response->headers->has('Access-Control-Allow-Origin')) {
+            // Add the CORS headers to the Response
+            $this->configureAllowedOrigin($response, $request);
+
+            if ($response->headers->has('Access-Control-Allow-Origin')) {
+                // $this->configureAllowCredentials($response, $request);
+                if ($this->supportsCredentials) {
+                    $response->headers->set('Access-Control-Allow-Credentials', 'true');
+                }
+
+                // $this->configureExposedHeaders($response, $request);
+                if ($this->exposedHeaders) {
+                    $response->headers->set('Access-Control-Expose-Headers', implode(', ', $this->exposedHeaders));
+                }
+            }
+        }
+
+        return $response;
     }
 
-    protected function simple(Request $request, Closure $next)
+    /**
+     * 最简单宽松条件的，有安全风险
+     * @param Request $request
+     * @param Response $response
+     * @return Response
+     */
+    protected function simple(Request $request, Response $response)
     {
-        $response = $next($request);
-
-        $origin = $request->server('HTTP_ORIGIN') ? $request->server('HTTP_ORIGIN') : '';
         $allow_origin = config('cors.allowed_origins', ['*', 'http://localhost:8080']);
+
+        $origin = (string)$request->headers->get('Origin');
+
         if (in_array($origin, $allow_origin)) {
-            $response->headers->set('Access-Control-Allow-Origin', $origin);
-            $response->headers->set('Access-Control-Allow-Headers', 'Origin, Content-Type, Cookie, X-CSRF-TOKEN, Accept, Authorization, X-XSRF-TOKEN');
-            $response->headers->set('Access-Control-Expose-Headers', 'Authorization, authenticated');
+            if (!$response->headers->has('Access-Control-Allow-Origin')) {
+                if ($origin) {
+                    $response->headers->set('Access-Control-Allow-Origin', $origin);
+                } else {
+                    $response->headers->set('Access-Control-Allow-Origin', '*');
+                }
+            }
+
+            $response->headers->set('Access-Control-Allow-Headers', '*');
             $response->headers->set('Access-Control-Allow-Methods', 'GET, POST, PATCH, PUT, OPTIONS, DELETE');
+            $response->headers->set('Access-Control-Max-Age', 7200);
+            // $response->headers->set('Access-Control-Expose-Headers', 'Authorization, authenticated');
             $response->headers->set('Access-Control-Allow-Credentials', 'true');
         }
 
         return $response;
     }
 
-
+    /**
+     * @param Request $request
+     * @return bool
+     */
     protected function shouldRun(Request $request)
     {
         // Get the paths from the config or the middleware
@@ -132,17 +171,17 @@ class Cors
         });
     }
 
+    /**
+     * OPTIONS 预检请求
+     * @param Request $request
+     * @return Response
+     */
     public function handlePreflightRequest(Request $request): Response
     {
         $response = new Response();
 
         $response->setStatusCode(204);
 
-        return $this->addPreflightRequestHeaders($response, $request);
-    }
-
-    public function addPreflightRequestHeaders(Response $response, Request $request): Response
-    {
         $this->configureAllowedOrigin($response, $request);
 
         if ($response->headers->has('Access-Control-Allow-Origin')) {
@@ -173,42 +212,6 @@ class Cors
         return $response;
     }
 
-    /**
-     * Add the headers to the Response, if they don't exist yet.
-     *
-     * @param Request $request
-     * @param Response $response
-     * @return Response
-     */
-    protected function addHeaders(Request $request, Response $response): Response
-    {
-        if (!$response->headers->has('Access-Control-Allow-Origin')) {
-            // Add the CORS headers to the Response
-            $response = $this->addActualRequestHeaders($response, $request);
-        }
-
-        return $response;
-    }
-
-    public function addActualRequestHeaders(Response $response, Request $request): Response
-    {
-        $this->configureAllowedOrigin($response, $request);
-
-        if ($response->headers->has('Access-Control-Allow-Origin')) {
-            // $this->configureAllowCredentials($response, $request);
-            if ($this->supportsCredentials) {
-                $response->headers->set('Access-Control-Allow-Credentials', 'true');
-            }
-
-            // $this->configureExposedHeaders($response, $request);
-            if ($this->exposedHeaders) {
-                $response->headers->set('Access-Control-Expose-Headers', implode(', ', $this->exposedHeaders));
-            }
-        }
-
-        return $response;
-    }
-
     private function configureAllowedOrigin(Response $response, Request $request): void
     {
         if ($this->allowAllOrigins === true && !$this->supportsCredentials) {
@@ -228,18 +231,17 @@ class Cors
     }
 
     /**
+     * 获取配置
      */
     public function setOptions(): void
     {
         $options = $this->container['config']->get('cors');
 
         $this->allowedOrigins = $options['allowedOrigins'] ?? $options['allowed_origins'] ?? $this->allowedOrigins;
-        $this->allowedOriginsPatterns =
-            $options['allowedOriginsPatterns'] ?? $options['allowed_origins_patterns'] ?? $this->allowedOriginsPatterns;
+        $this->allowedOriginsPatterns = $options['allowedOriginsPatterns'] ?? $options['allowed_origins_patterns'] ?? $this->allowedOriginsPatterns;
         $this->allowedMethods = $options['allowedMethods'] ?? $options['allowed_methods'] ?? $this->allowedMethods;
         $this->allowedHeaders = $options['allowedHeaders'] ?? $options['allowed_headers'] ?? $this->allowedHeaders;
-        $this->supportsCredentials =
-            $options['supportsCredentials'] ?? $options['supports_credentials'] ?? $this->supportsCredentials;
+        $this->supportsCredentials = $options['supportsCredentials'] ?? $options['supports_credentials'] ?? $this->supportsCredentials;
 
         $maxAge = $this->maxAge;
         if (array_key_exists('maxAge', $options)) {

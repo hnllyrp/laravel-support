@@ -4,7 +4,9 @@ namespace Hnllyrp\LaravelSupport;
 
 use Hnllyrp\LaravelSupport\Console\Commands\AppCommand;
 use Hnllyrp\LaravelSupport\Support\Macros\Builder\WhereHasIn;
+use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Database\Eloquent;
+use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider;
 
 /**
@@ -28,7 +30,7 @@ class SupportServiceProvider extends ServiceProvider
     /**
      * Boot the provider.
      */
-    public function boot()
+    public function boot(Router $router)
     {
         // 自定义配置文件
         $this->mergeConfigFrom(__DIR__ . '/config/shop.php', 'support');
@@ -40,6 +42,28 @@ class SupportServiceProvider extends ServiceProvider
         $this->commands([
             AppCommand::class
         ]);
+
+        /**
+         * 添加全局中间件 （相当于 添加中间件至 App\Http\Kernel 的 protected $middleware 属性里）
+         */
+        $kernel = $this->app->make(Kernel::class);
+        $kernel->pushMiddleware(\Hnllyrp\LaravelSupport\Middleware\Cors::class);
+
+        /**
+         * 1. 添加路由中间件，并且设置一个别名
+         *  aliasMiddleware（相当于 添加中间件至 App\Http\Kernel 的 protected $routeMiddleware 属性里）
+         * 2. 添加中间件组 （相当于 添加中间件至 App\Http\Kernel 的 protected $middlewareGroups 属性里）
+         * prependMiddlewareToGroup 添加一个中间件至 中间组的开头
+         * pushMiddlewareToGroup 添加一个中间件至 中间组的结束
+         */
+
+        // $router->aliasMiddleware('api_token', \Hnllyrp\LaravelSupport\Middleware\ApiToken::class);
+        $router->pushMiddlewareToGroup('api', \Hnllyrp\LaravelSupport\Middleware\ApiToken::class);
+
+        // 或者
+        // $router = $this->app->make(Router::class);
+        // $router->aliasMiddleware('verify_test', VerifyTest::class);
+
     }
 
 

@@ -76,7 +76,7 @@ class JwtService
      * @param string $header
      * @return int|mixed
      */
-    public static function checkUserToken($token = null, string $item = 'user_id', string $header = 'token')
+    public static function getUserToken($token = null, string $item = 'user_id', string $header = 'token')
     {
         if (is_null($token)) {
             if (request()->hasHeader($header)) {

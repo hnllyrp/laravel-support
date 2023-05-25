@@ -13,6 +13,8 @@
 ├─resources 静态资源 语言包、视图等
 ├─Rules 验证规则
 ├─Services 服务类
+│  ├─ DBService 数据库DB服务
+│  ├─ JwtService jwt服务
 ├─Support
 │  ├─Abstracts
 │  │  ├─Service.php
@@ -33,7 +35,6 @@
   - 用户名、手机号、密码、身份证号码、银行卡、
 
 - 中间件
-  - 跨域中间件
   - 防止表单重复提交
   - jwt token 验证中间件
   - laravel-cors 跨域中间件

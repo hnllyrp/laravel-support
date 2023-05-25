@@ -235,7 +235,7 @@ class Cors
      */
     public function setOptions(): void
     {
-        $options = $this->container['config']->get('cors');
+        $options = $this->container['config']->get('cors', []);
 
         $this->allowedOrigins = $options['allowedOrigins'] ?? $options['allowed_origins'] ?? $this->allowedOrigins;
         $this->allowedOriginsPatterns = $options['allowedOriginsPatterns'] ?? $options['allowed_origins_patterns'] ?? $this->allowedOriginsPatterns;

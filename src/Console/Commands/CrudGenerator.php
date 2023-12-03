@@ -89,7 +89,7 @@ class CrudGenerator extends Command
             $this->getStub('Controller')
         );
 
-        file_put_contents(app_path("/$app_path/Controllers/{$name}Controller.php"), $controllerTemplate);
+        file_put_contents(app_path("$app_path/Controllers/{$name}Controller.php"), $controllerTemplate);
     }
 
     protected function repository($name)
@@ -100,7 +100,7 @@ class CrudGenerator extends Command
             $this->getStub('Repository')
         );
 
-        file_put_contents(app_path("/Repositories/{$name}Repository.php"), $repositoryTemplate);
+        file_put_contents(app_path("Repositories/{$name}Repository.php"), $repositoryTemplate);
     }
 
     protected function model($name)
@@ -111,7 +111,7 @@ class CrudGenerator extends Command
             $this->getStub('Model')
         );
 
-        file_put_contents(app_path("/Models/{$name}.php"), $modelTemplate);
+        file_put_contents(app_path("Models/{$name}.php"), $modelTemplate);
     }
 
     protected function request($name, $app_path = 'Http')
@@ -122,10 +122,10 @@ class CrudGenerator extends Command
             $this->getStub('Request')
         );
 
-        if (!file_exists($path = app_path('/Http/Requests')))
+        if (!file_exists($path = app_path('Http/Requests')))
             mkdir($path, 0777, true);
 
-        file_put_contents(app_path("/$app_path/Requests/{$name}Request.php"), $requestTemplate);
+        file_put_contents(app_path("$app_path/Requests/{$name}Request.php"), $requestTemplate);
     }
 
     protected function getStub($type)

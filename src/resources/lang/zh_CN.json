@@ -1,0 +1,13 @@
+{
+    "title": "标题",
+    "title_placeholder": "请输入标题",
+    "content": "内容",
+    "content_placeholder": "请输入内容",
+    "submit": "提交",
+    "cancel": "取消",
+    "delete": "删除",
+    "edit": "编辑",
+    "delete_confirm": "确定要删除吗？",
+    "delete_success": "删除成功",
+    "delete_fail": "删除失败"
+}

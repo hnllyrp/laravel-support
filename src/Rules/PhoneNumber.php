@@ -25,7 +25,8 @@ class PhoneNumber implements Rule
      */
     public function passes($attribute, $value)
     {
-        return preg_match('/^(1[3-9])\d{9}$/', $value) ? true : false;
+        // 验证手机号
+        return (bool)preg_match('/^(1[3-9])\d{9}$/', $value);
     }
 
     /**

@@ -28,9 +28,16 @@ class JwtTest extends TestCase
         return $jwt;
     }
 
+    public function testRefreshToken($token = '')
+    {
+        $token = JwtService::refreshToken($token);
+
+        return $token;
+    }
+
     public function testCheckUserToken($token)
     {
-        $user_id = self::checkUserToken($token);
+        $user_id = self::getUserToken($token);
 
         return $user_id;
     }
@@ -42,7 +49,7 @@ class JwtTest extends TestCase
      * @param string $header
      * @return int|mixed
      */
-    public static function checkUserToken($token = null, string $item = 'user_id', string $header = 'token')
+    public static function getUserToken($token = null, string $item = 'user_id', string $header = 'token')
     {
         if (is_null($token)) {
             if (request()->hasHeader($header)) {

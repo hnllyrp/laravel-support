@@ -28,7 +28,7 @@ class AppCommand extends Command
 
     /**
      * 点阵字母
-     * http://patorjk.com/software/taag/#p=display&f=Small%20Slant&t=app
+     * @link http://patorjk.com/software/taag/#p=display&f=Small%20Slant&t=app
      * @var string
      */
     public static $logo = <<<LOGO
@@ -58,8 +58,9 @@ LOGO;
      * getVersion
      * @return string
      */
-    public static function getVersion()
+    public function getVersion()
     {
+        return 'Laravel ' . $this->laravel->version();
         // return VERSION . ' ' .  RELEASE;
     }
 
@@ -70,7 +71,8 @@ LOGO;
      */
     protected function listCommands()
     {
-        $commands = collect(Artisan::all())->mapWithKeys(function ($command, $key) {
+        $artisan_list = Artisan::all();
+        $commands = collect($artisan_list)->mapWithKeys(function ($command, $key) {
             if (Str::startsWith($key, 'app:')) {
                 return [$key => $command];
             }

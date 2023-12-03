@@ -2,16 +2,28 @@
 
 namespace Hnllyrp\LaravelSupport\Support\Eloquent;
 
+use Hnllyrp\LaravelQueryCache\Traits\Cacheable;
+use Hnllyrp\LaravelSupport\Support\Traits\Filterable;
 use Illuminate\Database\Eloquent\Model as EloquentModel;
 
 /**
  * 公共 Model 基类
  * @method static findInSet($query, $column, $value)
+ * @method static filter($query, $input = [], $filter = null)
+ * @method static whereLike($query, $column, $value)
  * @method static whereHasIn(string $relation, ?\Closure $callable = null)
  */
-class Model extends EloquentModel
+abstract class Model extends EloquentModel
 {
-   /**
+    /**
+     * 使用缓存
+     * Model::cache(now()->addDay())->count();
+     * Model::cacheForever('cache_key')->count();
+     * Model::cacheRefresh('cache_key', 60)->count();
+     */
+    use Cacheable, Filterable;
+
+    /**
      * 提供一个MySQL支持的find_in_set()查询构建器
      *
      * @param $query
@@ -26,19 +38,45 @@ class Model extends EloquentModel
     }
 
     /**
-     * @param int $id
-     * @param array $columns
-     * @return \Illuminate\Database\Eloquent\Builder|Base|object|null
+     * WHERE $column LIKE %$value% query.
+     *
+     * @param  $query
+     * @param  $column
+     * @param  $value
+     * @param string $boolean
+     * @return mixed
      */
-    public static function getOneById($id = 0, $columns = [])
+    public function scopeWhereLike($query, $column, $value, $boolean = 'and')
     {
-        $model = static::query()->where(self::getKeyName()(), $id);
+        return $query->where($column, 'LIKE', "%$value%", $boolean);
+    }
 
-        if ($columns) {
-            $model = $model->select($columns);
-        }
+    /**
+     * WHERE $column LIKE $value% query.
+     *
+     * @param  $query
+     * @param  $column
+     * @param  $value
+     * @param string $boolean
+     * @return mixed
+     */
+    public function scopeWhereBeginsWith($query, $column, $value, $boolean = 'and')
+    {
+        return $query->where($column, 'LIKE', "$value%", $boolean);
+    }
 
-        return $model->first();
+    /**
+     * WHERE $column LIKE %$value query.
+     *
+     * @param  $query
+     * @param  $column
+     * @param  $value
+     * @param string $boolean
+     * @return mixed
+     */
+    public function scopeWhereEndsWith($query, $column, $value, $boolean = 'and')
+    {
+        return $query->where($column, 'LIKE', "%$value", $boolean);
     }
 
     /**

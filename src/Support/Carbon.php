@@ -2,20 +2,20 @@
 
 namespace Hnllyrp\LaravelSupport\Support;
 
-
 use Illuminate\Support\Carbon as BaseCarbon;
 
 class Carbon extends BaseCarbon
 {
-    /**
-     * 本地时区时间,处理差8小时的问题
-     * 例如 东八区
-     * @return $this
-     */
-    public function localTime()
+    public function __construct($time = null, $tz = null)
     {
-        $this->setTimezone(config('app.timezone'));
+        parent::__construct($time, $tz);
 
-        return $this;
+        if ($tz === null) {
+            // 设置本地时区,北京时间差8小时问题
+            $this->setTimezone(config('app.timezone', 'Asia/Shanghai'));
+            // 设置中文语言包
+            $this->setLocale(config('app.locale', 'zh_CN'));
+        }
     }
+
 }

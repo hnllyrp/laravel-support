@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Middleware;
+namespace Hnllyrp\LaravelSupport\Http\Middleware;
 
 use Closure;
 use Illuminate\Support\Facades\DB;

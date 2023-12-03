@@ -1,17 +1,17 @@
 <?php
 
-namespace Hnllyrp\LaravelSupport\Middleware;
+namespace Hnllyrp\LaravelSupport\Http\Middleware;
 
 use Closure;
 use Hnllyrp\LaravelSupport\Services\Common\JwtService;
-use Hnllyrp\LaravelSupport\Support\Traits\ApiResponse;
+use Hnllyrp\LaravelSupport\Support\Traits\HttpResponse;
 
 /**
  * 验证用户登录token  使用jwt
  */
 class ApiToken
 {
-    use ApiResponse;
+    use HttpResponse;
 
     /**
      * Handle an incoming request.
@@ -25,7 +25,7 @@ class ApiToken
         // 验证登录
         $user_id = $this->authorization();
         if (!$user_id) {
-            return $this->setErrorCode(12)->failed(trans('user.not_login'));
+            return $this->setErrorCode(12)->fail(trans('user.not_login'));
         }
 
         // 已登录返回 user_id
@@ -43,6 +43,6 @@ class ApiToken
      */
     protected function authorization($token = null, $item = 'user_id', $header = 'token')
     {
-        return JwtService::checkUserToken($token, $item, $header);
+        return JwtService::getUserToken($token, $item, $header);
     }
 }

@@ -35,7 +35,11 @@ class AppTest extends TestCase
 
         // app('routes') 相当于 app()->make('router')->getRoutes()
 
-        dd(app()->make('router'));
+        // dd(app()->make('router'));
+
+        // 获取配置
+        app('config');
+        app('config')->get('key');
 
 
         // $this->assertTrue(true);
@@ -43,9 +47,13 @@ class AppTest extends TestCase
 
     public function testConfig()
     {
+        dump(config());
+
         // 配置
         // $disk = config('filesystems.default');
         // dd($disk);
+
+        // \addons\shop\model\Config::get(['name' => 'user'])
 
         // $user = ShopConfig::where('name', 'user')->first();
         //
@@ -67,6 +75,12 @@ class AppTest extends TestCase
     public function testLang()
     {
         dd(__('cms::common.No specified article found'));
+    }
+
+    public function testRequest()
+    {
+        dump(request());
+        dump(request()->userAgent());
     }
 
 }

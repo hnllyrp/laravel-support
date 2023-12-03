@@ -25,6 +25,9 @@ class DevelopServiceProvider extends ServiceProvider
      */
     public function register()
     {
+        // 自定义配置文件
+        $this->mergeConfigFrom(__DIR__ . '/config/develop.php', 'develop'); // exp: config('develop.name');
+
         // 注册绑定类
         //$this->app->bind(MyInterface::class, MyClass::class);
 
@@ -52,14 +55,12 @@ class DevelopServiceProvider extends ServiceProvider
          * 通过 bootProvider() 方法中的 $this->call([$provider, 'boot']) 来执行 Service Provider 的 boot() 方法
          */
 
-        // 自定义配置文件
-        $this->mergeConfigFrom(__DIR__.'/config/develop.php', 'develop');
         // 自定义视图
-        $this->loadViewsFrom(__DIR__.'/path/to/views', 'develop'); // exp: return view('develop::admin.index.index');
+        $this->loadViewsFrom(__DIR__ . '/path/to/views', 'develop'); // exp: return view('develop::admin.index.index');
         // 自定义语言包
-        $this->loadTranslationsFrom(__DIR__.'/path/to/translations', 'develop');// exp:  trans('develop::common.test')
+        $this->loadTranslationsFrom(__DIR__ . '/path/to/translations', 'develop');// exp:  trans('develop::common.test')
         // 自定义数据库迁移
-        $this->loadMigrationsFrom(__DIR__.'/path/to/migrations'); // exp: php artisan migrate
+        $this->loadMigrationsFrom(__DIR__ . '/path/to/migrations'); // exp: php artisan migrate
 
         // 自定义路由
         // $this->loadRoutesFrom(__DIR__.'/routes.php');
@@ -80,15 +81,15 @@ class DevelopServiceProvider extends ServiceProvider
             // 发布 视图、语言包、数据库迁移文件等
             // 发布配置文件
             $this->publishes([
-                __DIR__.'/path/to/config/develop.php' => config_path('develop.php'),
+                __DIR__ . '/path/to/config/develop.php' => config_path('develop.php'),
             ]);
 
             $this->publishes([
-                __DIR__.'/path/to/views' => resource_path('views/vendor/develop'),
+                __DIR__ . '/path/to/views' => resource_path('views/vendor/develop'),
             ]);
 
             $this->publishes([
-                __DIR__.'/path/to/translations' => resource_path('lang/vendor/develop'),
+                __DIR__ . '/path/to/translations' => resource_path('lang/vendor/develop'),
             ]);
 
             // 发布Seeder文件
@@ -98,7 +99,7 @@ class DevelopServiceProvider extends ServiceProvider
 
             // 公用 Assets 资源文件JavaScript、CSS 和图片等文件
             $this->publishes([
-                __DIR__.'/path/to/assets' => public_path('vendor/develop'),
+                __DIR__ . '/path/to/assets' => public_path('vendor/develop'),
             ], 'public');
         }
     }

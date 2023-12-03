@@ -13,7 +13,7 @@
 ├─resources 静态资源 语言包、视图等
 ├─Rules 验证规则
 ├─Services 服务类
-│  ├─ DBService 数据库DB服务
+│  ├─ DbService 数据库DB服务
 │  ├─ JwtService jwt服务
 ├─Support
 │  ├─Abstracts

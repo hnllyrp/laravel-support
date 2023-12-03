@@ -2,6 +2,7 @@
 
 namespace Hnllyrp\LaravelSupport\Support\Abstracts;
 
+use BadMethodCallException;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
@@ -9,13 +10,20 @@ use Illuminate\Support\Facades\Schema;
 
 /**
  * Class Repository 抽象类
+ *
+ *  demo:
+ *  $repository = Repository::instance()->setModel()->where('id', 1)->first();
+ *
+ *
  */
 abstract class Repository
 {
+    protected static $instance;
+
     /**
      * The model to provide.
      *
-     * @var Model
+     * @var \Illuminate\Database\Eloquent\Model
      */
     protected $model;
 
@@ -47,15 +55,19 @@ abstract class Repository
      *
      * @return static
      */
-    public static function instance(): Repository
+    public static function instance()
     {
-        return app(static::class);
+        if (is_null(static::$instance)) {
+            static::$instance = app(static::class);
+        }
+
+        return static::$instance;
     }
 
     /**
      * Return the model instance.
      *
-     * @return Model
+     * @return \Illuminate\Database\Eloquent\Model
      */
     public function getModel()
     {
@@ -353,15 +365,36 @@ abstract class Repository
     }
 
     /**
-     * 调用 model 的方法
+     * Handle dynamic method calls into the class.
      *
-     * @param string $method 调用model 自己的方法
+     * @param string $method
      * @param array $parameters
-     *
      * @return mixed
      */
-    public function __call(string $method, array $parameters)
+    public function __call($method, $parameters)
     {
-        return $this->{$method}(...$parameters);
+        if (method_exists($this, $method)) {
+            return $this->$method(...$parameters);
+        }
+
+        throw new BadMethodCallException(sprintf(
+            'Method %s::%s does not exist.', static::class, $method
+        ));
+    }
+
+    /**
+     * Handle dynamic static method calls into the method.
+     *
+     * @param string $method
+     * @param array $parameters
+     * @return mixed
+     */
+    public static function __callStatic($method, $parameters)
+    {
+        if (method_exists(static::class, 'instance')) {
+            return self::instance();
+        }
+
+        return (new static)->$method(...$parameters);
     }
 }

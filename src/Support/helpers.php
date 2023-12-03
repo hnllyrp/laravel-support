@@ -48,7 +48,7 @@ if (!function_exists('get_image_path')) {
     function get_image_path($image = '')
     {
         if (empty($image)) {
-            return asset(config('shop.no_picture', ''));
+            return asset(config('shop.no_picture', 'img/no_image.jpg'));
         }
 
         // 远程图片 http or https
@@ -126,9 +126,9 @@ if (!function_exists('db_table')) {
      */
     function db_table($table)
     {
-        $type = config('database.default', 'mysql');
+        $connection = config('database.default', 'mysql');
 
-        return config('database.connections.' . $type . '.prefix') . $table;
+        return config('database.connections.' . $connection . '.prefix') . $table;
     }
 }
 
@@ -140,11 +140,11 @@ if (!function_exists('db_config')) {
      */
     function db_config($item = null)
     {
-        $type = config('database.default', 'mysql');
+        $connection = config('database.default', 'mysql');
 
-        $config = config('database.connections.' . $type);
+        $connections = config('database.connections.' . $connection);
 
-        return is_null($item) ? $config : $config[$item];
+        return is_null($item) ? $connections : $connections[$item];
     }
 }
 
@@ -173,23 +173,28 @@ if (!function_exists('db_query')) {
 
                 // Insert bindings into query
                 $sql = str_replace(array('%', '?'), array('%%', '%s'), $query->sql);
-
                 $singleSql = vsprintf($sql, $query->bindings);
-                $sqlTime = 'execution time:' . $query->time . 'ms';// // sql 执行时间： 单位 毫秒
+
+                $sqlTime = 'time:' . $query->time . 'ms';// // sql 执行时间： 单位 毫秒
 
                 if ($log == true) {
-                    \Illuminate\Support\Facades\Log::debug($singleSql);
-                    \Illuminate\Support\Facades\Log::debug($sqlTime);
+                    \Illuminate\Support\Facades\Log::channel('daily')->debug('================================');
+                    \Illuminate\Support\Facades\Log::channel('daily')->debug($singleSql);
+                    \Illuminate\Support\Facades\Log::channel('daily')->debug($sqlTime);
 
-                    if ($sqlTime > 1000) {
-                        \Illuminate\Support\Facades\Log::debug('慢查询：' . $singleSql . $sqlTime);
+                    if ($query->time > 1000) {
+                        \Illuminate\Support\Facades\Log::channel('daily')->debug('慢查询：');
+                        \Illuminate\Support\Facades\Log::channel('daily')->debug($singleSql);
+                        \Illuminate\Support\Facades\Log::channel('daily')->debug($sqlTime);
                     }
                 } else {
                     dump($singleSql);
                     dump($sqlTime);
 
-                    if ($sqlTime > 1000) {
-                        dump('慢查询：' . $singleSql . $sqlTime);
+                    if ($query->time > 1000) {
+                        dump('慢查询：');
+                        dump($singleSql);
+                        dump($sqlTime);
                     }
                 }
             }
@@ -295,8 +300,7 @@ if (!function_exists('new_html_in')) {
      */
     function new_html_in($str)
     {
-        $str = trim($str);
-        return htmlspecialchars($str);
+        return htmlspecialchars(trim($str));
     }
 }
 
@@ -312,6 +316,46 @@ if (!function_exists('realpath_curl')) {
         } else {
             return '@' . realpath($file);
         }
+    }
+}
+
+if (!function_exists('getClientIp')) {
+    /**
+     * 获取客户端ip
+     * @return string
+     */
+    function getClientIp(): string
+    {
+        return request()->getClientIp();
+    }
+}
+
+if (!function_exists('getServerIp')) {
+    /**
+     * 获取服务端ip
+     * @return mixed|string
+     */
+    function getServerIp()
+    {
+        if (request()->server()) {
+            if (request()->server('SERVER_ADDR')) {
+                // HTTP请求可以获取, 但CLI不行
+                $server_ip = request()->server('SERVER_ADDR');
+            } elseif (request()->server('SERVER_NAME')) {
+                $server_ip = gethostbyname(request()->server('SERVER_NAME'));
+            } else {
+                $server_ip = request()->server('LOCAL_ADDR');
+            }
+        } else {
+            // HTTP请求可以获取, 但CLI不行
+            $server_ip = getenv('SERVER_ADDR');
+        }
+
+        if (!$server_ip) {
+            // 兼容获取CLI方式下服务器IP, 注意云主机有可能只能获取到内网IP
+            return getHostByName(getHostName());
+        }
+        return filter_var($server_ip, FILTER_VALIDATE_IP) ?: '127.0.0.1';
     }
 }
 

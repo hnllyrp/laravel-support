@@ -6,7 +6,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 
 /**
- * 注册模块提供者（简单版本 laravel-modules）
+ * 注册模块提供者（简单版本的 laravel-modules）
  * Class ModuleServiceProvider
  */
 class ModuleServiceProvider extends ServiceProvider

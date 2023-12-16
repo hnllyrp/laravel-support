@@ -1,6 +1,5 @@
 <?php
 
-
 namespace Hnllyrp\LaravelSupport\Support\Traits;
 
 use App\Support\Arr;

@@ -2,7 +2,7 @@
 
 namespace Hnllyrp\LaravelSupport\Providers;
 
-use Illuminate\Routing\Router;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 
 
@@ -39,15 +39,26 @@ class DevelopServiceProvider extends ServiceProvider
         // 注册绑定其他服务提供者
         // $this->app->register('App\\OtherServiceProvider');
 
+        // 遍历模块目录下的 Service Provider
+        // $providers = glob($this->app->path('Module/*/*ServiceProvider.php'));
+        // $namespace = $this->app->getNamespace(); // APP
+        // foreach ($providers as $provider) {
+        //     $providerClass = $namespace . str_replace(
+        //             ['/', '.php'],
+        //             ['\\', ''],
+        //             Str::after($provider, realpath(app_path()) . DIRECTORY_SEPARATOR)
+        //         );
+        //
+        //     $this->app->register($providerClass);
+        // }
     }
 
     /**
      * Bootstrap services.
      *
-     * @param Router $router
      * @return void
      */
-    public function boot(Router $router)
+    public function boot()
     {
         /**
          * boot() 方法中可以使用依赖注入。
@@ -56,17 +67,17 @@ class DevelopServiceProvider extends ServiceProvider
          */
 
         // 自定义视图
-        $this->loadViewsFrom(__DIR__ . '/path/to/views', 'develop'); // exp: return view('develop::admin.index.index');
+        $this->loadViewsFrom(__DIR__ . '/resources/views', 'develop'); // exp: return view('develop::admin.index.index');
         // 自定义语言包
-        $this->loadTranslationsFrom(__DIR__ . '/path/to/translations', 'develop');// exp:  trans('develop::common.test')
+        $this->loadTranslationsFrom(__DIR__ . '/resources/lang', 'develop');// exp:  trans('develop::common.test')
         // 自定义数据库迁移
-        $this->loadMigrationsFrom(__DIR__ . '/path/to/migrations'); // exp: php artisan migrate
+        $this->loadMigrationsFrom(__DIR__ . '/database/migrations'); // exp: php artisan migrate
 
         // 自定义路由
         // $this->loadRoutesFrom(__DIR__.'/routes.php');
 
         // 自定义注册路由
-        $this->registerRoute($router);
+        $this->registerRoute();
 
         // 加载自定义辅助函数
         $this->loadHelperFrom(__DIR__ . '/Support');
@@ -106,14 +117,13 @@ class DevelopServiceProvider extends ServiceProvider
 
     /**
      * Register routes.
-     *
-     * @param Router $router
      */
-    protected function registerRoute(Router $router)
+    protected function registerRoute()
     {
         if (!$this->app->routesAreCached()) {
-            $router->middleware('web')->namespace(__NAMESPACE__ . '\Controllers')->group(__DIR__ . '/Routes/web.php');
-            $router->middleware('api')->namespace(__NAMESPACE__ . '\Controllers')->group(__DIR__ . '/Routes/api.php');
+            Route::namespace(__NAMESPACE__ . '\Http\Controllers')->group(__DIR__ . '/routes/admin.php');
+            Route::namespace(__NAMESPACE__ . '\Http\Controllers')->group(__DIR__ . '/routes/web.php');
+            Route::namespace(__NAMESPACE__ . '\Http\Controllers')->group(__DIR__ . '/routes/api.php');
         }
     }
 

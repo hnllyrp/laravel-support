@@ -15,7 +15,7 @@ class QueryBuilderMacro
     public function getToArray(): \Closure
     {
         return function ($columns = ['*']) {
-            return $this->get($columns)->toArray();
+            return $this->getModel()->get($columns)->toArray();
         };
     }
 

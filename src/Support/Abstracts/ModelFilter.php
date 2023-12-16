@@ -1,9 +1,10 @@
 <?php
 
-
 namespace Hnllyrp\LaravelSupport\Support\Abstracts;
 
 use Illuminate\Database\Eloquent\Builder as QueryBuilder;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 /**
@@ -14,6 +15,20 @@ use Illuminate\Support\Str;
  */
 abstract class ModelFilter
 {
+    /**
+     * Array of method names that should not be called.
+     *
+     * @var array
+     */
+    protected $blacklist = [];
+
+    /**
+     * Array of filter that will be ignored
+     * 过滤指定输入字段
+     * @var array
+     */
+    protected static $except_filter = [];
+
     /**
      * Array of input to filter.
      *
@@ -40,13 +55,6 @@ abstract class ModelFilter
      * @var bool
      */
     protected $camel_cased_methods = true;
-
-    /**
-     * Array of method names that should not be called.
-     *
-     * @var array
-     */
-    protected $blacklist = [];
 
     /**
      * ModelFilter constructor.
@@ -83,6 +91,11 @@ abstract class ModelFilter
     public function removeEmptyInput($input)
     {
         $filterableInput = [];
+
+        // 排除指定输入字段
+        if (!empty(static::$except_filter)) {
+            $input = Arr::except($input, static::$except_filter);
+        }
 
         foreach ($input as $key => $val) {
             if ($this->includeFilterInput($key, $val)) {
@@ -148,6 +161,36 @@ abstract class ModelFilter
         }
 
         return array_key_exists($key, $this->input) ? $this->input[$key] : $default;
+    }
+
+    /**
+     * Set to drop `_id` from input. Mainly for testing.
+     *
+     * @param null $bool
+     * @return bool
+     */
+    public function dropIdSuffix($bool = null)
+    {
+        if ($bool === null) {
+            return $this->drop_id;
+        }
+
+        return $this->drop_id = $bool;
+    }
+
+    /**
+     * Convert input to camel_case. Mainly for testing.
+     *
+     * @param null $bool
+     * @return bool
+     */
+    public function convertToCamelCasedMethods($bool = null)
+    {
+        if ($bool === null) {
+            return $this->camel_cased_methods;
+        }
+
+        return $this->camel_cased_methods = $bool;
     }
 
     /**

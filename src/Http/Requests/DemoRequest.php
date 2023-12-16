@@ -37,6 +37,8 @@ class DemoRequest extends FormRequest
             'mobile' => 'required|unique:users',
             // 验证时间 格式 例如 2013-06-19
             'start_time' => 'required|date',
+            // 存在时验证不能为空 filled。例如大于0的场景
+            'number' => 'filled|string',
             // 存在时验证 可为 null
             'remark' => 'nullable|string',
             // 大小在2到30之间

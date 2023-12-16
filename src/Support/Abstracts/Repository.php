@@ -3,35 +3,35 @@
 namespace Hnllyrp\LaravelSupport\Support\Abstracts;
 
 use BadMethodCallException;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 
 /**
  * Class Repository 抽象类
  *
- *  demo:
- *  $repository = Repository::instance()->setModel()->where('id', 1)->first();
+ * demo 示例
  *
+ * new class TestRepository extends BaseRepository
+ *
+ * TestRepository::instance()->setModel('App\Models\Users')->where('id', 1)->first();
+ * TestRepository::instance()->setTable('users')->where('id', 1)->first();
  *
  */
 abstract class Repository
 {
-    protected static $instance;
+    /**
+     * The base query builder instance.
+     *
+     * @var \Illuminate\Database\Query\Builder
+     */
+    protected $query;
 
     /**
-     * The model to provide.
+     * The model being queried.
      *
      * @var \Illuminate\Database\Eloquent\Model
      */
     protected $model;
-
-    /**
-     * The model query
-     * @var \Illuminate\Database\Eloquent\Builder
-     */
-    protected $query;
 
     /**
      * The DB table name
@@ -43,7 +43,7 @@ abstract class Repository
      * The DB Query builder
      * @var \Illuminate\Database\Query\Builder
      */
-    protected $db_query;
+    protected $db;
 
     public function __construct()
     {
@@ -57,11 +57,7 @@ abstract class Repository
      */
     public static function instance()
     {
-        if (is_null(static::$instance)) {
-            static::$instance = app(static::class);
-        }
-
-        return static::$instance;
+        return app(static::class);
     }
 
     /**
@@ -77,10 +73,10 @@ abstract class Repository
     /**
      * Sets the name of the Eloquent model.
      *
-     * @param string $model exp: App\Models\Users
+     * @param string|null $model App\Models\Users
      * @return $this
      */
-    public function setModel(string $model = ''): Repository
+    public function setModel($model = null)
     {
         $this->model = $model;
 
@@ -101,11 +97,11 @@ abstract class Repository
      * @param string $table
      * @return $this
      */
-    public function setTable(string $table = ''): Repository
+    public function setTable(string $table = '')
     {
         $this->table = $table;
 
-        $this->db_query = DB::table($this->table);
+        $this->db = DB::table($this->table);
 
         return $this;
     }
@@ -135,7 +131,7 @@ abstract class Repository
      */
     public function whereDB($column, $operator = null, $value = null, $boolean = 'and'): Repository
     {
-        $this->db_query->where(...func_get_args());
+        $this->db->where(...func_get_args());
 
         return $this;
     }
@@ -184,6 +180,7 @@ abstract class Repository
 
     /**
      * updateWhere
+     *  $this->>repository()->updateWhere();
      * @param array $where
      * @param array $data
      * @return bool
@@ -194,7 +191,7 @@ abstract class Repository
             return false;
         }
 
-        $model = $this->model;
+        $model = $this->model->query();
 
         if ($model->where($where)->exists()) {
 
@@ -205,6 +202,7 @@ abstract class Repository
 
     /**
      * updateOrInsert
+     *  $this->>repository()->updateOrInsert();
      * @param array $where
      * @param array $data
      * @return bool
@@ -215,10 +213,12 @@ abstract class Repository
             return false;
         }
 
-        $model = $this->model;
+        $model = $this->model->query();
 
         if (!$model->where($where)->exists()) {
-
+            if ($this->model->usesTimestamps()) {
+                $data[$this->model->getCreatedAtColumn()] = now()->timestamp;
+            }
             return $model->insert(array_merge($where, $data));
         }
 
@@ -226,46 +226,7 @@ abstract class Repository
     }
 
     /**
-     * firstByKey
-     *
-     * @param int $primary_key_value primary_key value
-     * @param string $primary primary_key
-     * @param array $columns
-     * @return array
-     */
-    public function firstByKey(int $primary_key_value = 0, string $primary = '', array $columns = ['*']): array
-    {
-        if (empty($primary_key_value)) {
-            return [];
-        }
-
-        $primary = $primary ?: $this->model->getKeyName(); // 主键
-
-        $model = $this->model->where($primary, $primary_key_value);
-
-        $model = $model->select($columns)->first();
-
-        return $model ? $model->toArray() : [];
-    }
-
-    /**
-     * count
-     * @param array $where
-     * @return int
-     */
-    public function count(array $where = []): int
-    {
-        $model = $this->model;
-
-        if (empty($where)) {
-            return $model->count();
-        }
-
-        return $model->where($where)->count();
-    }
-
-    /**
-     * 扩展whereIn方法(Models) 返回以字段为键值数组 数据
+     * 扩展 whereIn 方法(Models) 返回以字段为键值数组的数据
      *
      * @param string $field 字段名称 exp: goods_id
      * @param array $values 字段值 exp: [1,2,3]
@@ -281,11 +242,9 @@ abstract class Repository
             return [];
         }
 
-        $query = $this->query->whereIn($field, $values)->select($columns)->addSelect($field);
+        $model = $this->query->whereIn($field, $values)->select($columns)->addSelect($field);
 
-        $list = $query->get();
-
-        $list = $list ? $list->toArray() : [];
+        $list = $model->get();
 
         // 返回 以 $field 字段名称 为键值数组
         return collect($list)->mapWithKeys(function ($item) use ($field) {
@@ -309,7 +268,7 @@ abstract class Repository
             return [];
         }
 
-        $builder = $this->db_query->whereIn($field, $values)->select($columns)->addSelect($field);
+        $builder = $this->db->whereIn($field, $values)->select($columns)->addSelect($field);
 
         $list = $builder->get();
 
@@ -318,30 +277,6 @@ abstract class Repository
             $item = (array)$item;
             return [$item[$field] => $item];
         })->toArray();
-    }
-
-    /**
-     *
-     * 获取表格字段，并转换为KV格式
-     *
-     * @param Model|null|string $model 指定使用model
-     *
-     * @return array
-     */
-    public function getTableColumns($model = ''): array
-    {
-        $model = $model && is_object($model) ? $model : $this->model;
-
-        // 优先取 model fillable
-        $fillable = $model->getFillable();
-        if (!empty($fillable)) {
-            $modelColumns = $fillable;
-        } else {
-            $modelColumns = isset($model->columns) && is_array($model->columns) && !empty($model->columns) ? $model->columns :
-                Schema::setConnection($model->getConnection())->getColumnListing($model->getTable());
-        }
-
-        return array_combine($modelColumns, $modelColumns);
     }
 
     /**
@@ -355,7 +290,7 @@ abstract class Repository
      */
     public function getValidColumns(array $data, array $columns = null, string $primary = null): array
     {
-        $columns = $columns ?: $this->getTableColumns();
+        $columns = $columns ?: $this->model->getFillable();
         $primary = $primary ?: $this->model->getKeyName();
 
         // 不管是新增还是修改、不允许操作主键字段
@@ -392,7 +327,7 @@ abstract class Repository
     public static function __callStatic($method, $parameters)
     {
         if (method_exists(static::class, 'instance')) {
-            return self::instance();
+            return self::instance()->$method(...$parameters);
         }
 
         return (new static)->$method(...$parameters);

@@ -58,11 +58,7 @@ class Str extends BaseStr
      */
     public static function json_decode($json, $assoc = false, $depth = 512, $options = 0)
     {
-        if (empty($json)) {
-            return [];
-        }
-
-        if (is_array($json)) {
+        if (empty($json) || is_array($json)) {
             return $json;
         }
 
@@ -83,9 +79,10 @@ class Str extends BaseStr
      */
     public static function json_encode($value, $flags = 0, $depth = 512)
     {
-        if (empty($value)) {
-            return '';
+        if (empty($value) || is_string($value)) {
+            return $value;
         }
+
         $json = json_encode($value, $flags, $depth);
         if (JSON_ERROR_NONE !== json_last_error()) {
             return '';
@@ -93,6 +90,34 @@ class Str extends BaseStr
         return $json;
     }
 
+    /**
+     * 判断是否json字符串
+     * @param $value
+     * @return bool
+     */
+    public static function is_json($value)
+    {
+        if (empty($value)) {
+            return false;
+        }
+
+        json_decode($value);
+        return (json_last_error() === JSON_ERROR_NONE);
+    }
+
+    /**
+     * 正则判断是否json字符串
+     * @param $value
+     * @return bool
+     */
+    public static function is_json_string($value)
+    {
+        if (empty($value)) {
+            return false;
+        }
+
+        return !preg_match('/[^,:{}\\[\\]0-9.\\-+Eaeflnr-u \\n\\r\\t]/', preg_replace('/"(\\.|[^"\\\\])*"/', '', $value));
+    }
 
     /**
      * 字符串截取，支持中文和其他编码
@@ -293,8 +318,6 @@ class Str extends BaseStr
 
         return $template_content;
     }
-
-
 
 
 }

@@ -16,8 +16,11 @@
     ],
     "require": {
         "php": "^7.2.5|^8.0",
+        "ext-openssl": "*",
+        "ext-gmp": "*",
         "firebase/php-jwt": "^5.2",
-        "laravel/framework": "^6.0"
+        "laravel/framework": "^6.0",
+        "lpilp/guomi": "^1.0.8"
     },
     "autoload": {
         "psr-4": {

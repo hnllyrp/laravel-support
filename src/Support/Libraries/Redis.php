@@ -1,6 +1,5 @@
 <?php
 
-
 namespace Hnllyrp\LaravelSupport\Support\Libraries;
 
 use Exception;

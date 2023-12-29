@@ -1,12 +1,14 @@
 <?php
 
-
 namespace Hnllyrp\LaravelSupport\Services\Common;
 
 use Hnllyrp\LaravelSupport\Support\Abstracts\Service;
 use Hnllyrp\PhpSupport\Crypt\RSA;
 use Illuminate\Filesystem\Filesystem;
 
+/**
+ * Class RsaService RSA 非对称加密
+ */
 class RsaService extends Service
 {
     /**
@@ -70,9 +72,7 @@ class RsaService extends Service
         }
 
         $path = $this->getPath();
-
         $public_key_file = $path . ($this->getPublicKeyFile() ?? 'api_rsa_public_key.pem');
-
         $public_key = $this->files->get($public_key_file);
 
         return RSA::public_encrypt($plaintext, $public_key);

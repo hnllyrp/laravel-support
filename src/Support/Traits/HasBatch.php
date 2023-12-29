@@ -11,6 +11,7 @@ use Illuminate\Support\Arr;
  * laravel 操作 批量更新或插入
  *
  * @method static updateBatch(array $values, $uniqueBy, $update = null, $batchSize = 500)
+ * @method static insertBatch(array $values, $batchSize = 500)
  */
 trait HasBatch
 {
@@ -61,10 +62,10 @@ trait HasBatch
         }
 
         // 分批处理
-        $minChunck = 100;
+        $minChunk = 100;
         $totalValues = count($values);
-        $batchSizeInsert = ($totalValues < $batchSize && $batchSize < $minChunck) ? $minChunck : $batchSize;
-        $totalChunk = ($batchSizeInsert < $minChunck) ? $minChunck : $batchSizeInsert;
+        $batchSizeInsert = ($totalValues < $batchSize && $batchSize < $minChunk) ? $minChunk : $batchSize;
+        $totalChunk = ($batchSizeInsert < $minChunk) ? $minChunk : $batchSizeInsert;
 
         $values = array_chunk($values, $totalChunk, true);
 
@@ -82,6 +83,51 @@ trait HasBatch
             ));
 
             $count += $databaseQuery->getConnection()->affectingStatement($sql, $bindings);
+        }
+
+        return $count;
+    }
+
+    /**
+     * 批量插入 insert 带自动处理模型时间戳
+     * - 大数据量时，使用此方法可分批次处理
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param array $values
+     * @param int $batchSize
+     * @return int
+     */
+    public function scopeInsertBatch($query, array $values, $batchSize = 500)
+    {
+        if (empty($values)) {
+            return 0;
+        }
+
+        if (!is_array(reset($values))) {
+            $values = [$values];
+        } else {
+            foreach ($values as $key => $value) {
+                ksort($value);
+
+                $values[$key] = $value;
+            }
+        }
+
+        // 分批处理
+        $minChunk = 100;
+        $totalValues = count($values);
+        $batchSizeInsert = ($totalValues < $batchSize && $batchSize < $minChunk) ? $minChunk : $batchSize;
+        $totalChunk = ($batchSizeInsert < $minChunk) ? $minChunk : $batchSizeInsert;
+
+        $values = array_chunk($values, $totalChunk, true);
+
+        $count = 0;
+        foreach ($values as $value) {
+            $value = $this->addInsertAtToUpsertColumns($value);
+
+            $result = $query->insert($value);
+            if ($result == true) {
+                $count++;
+            }
         }
 
         return $count;
@@ -129,9 +175,7 @@ trait HasBatch
 
         $column = $this->query()->getModel()->getUpdatedAtColumn();
 
-        if (!is_null($column) &&
-            !array_key_exists($column, $update) &&
-            !in_array($column, $update)) {
+        if (!is_null($column) && !array_key_exists($column, $update) && !in_array($column, $update)) {
             $update[] = $column;
         }
 
@@ -139,8 +183,30 @@ trait HasBatch
     }
 
     /**
+     * Add the "created at" column to the insert columns.
+     *
+     * @param array $value
+     * @return array
+     */
+    protected function addInsertAtToUpsertColumns(array $value)
+    {
+        if (!$this->query()->getModel()->usesTimestamps()) {
+            return $value;
+        }
+
+        $column = $this->query()->getModel()->getCreatedAtColumn();
+
+        if (!is_null($column) && !array_key_exists($column, $value) && !in_array($column, $value)) {
+            $value[] = $column;
+        }
+
+        return $value;
+    }
+
+    /**
      * cleanBindingsCustom
      * Remove all of the expressions from a list of bindings.
+     *
      * @param array $bindings
      * @return array
      */

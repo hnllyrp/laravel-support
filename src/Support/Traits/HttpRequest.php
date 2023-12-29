@@ -1,9 +1,9 @@
 <?php
 
-
 namespace Hnllyrp\LaravelSupport\Support\Traits;
 
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Exception\RequestException;
 use Hnllyrp\LaravelSupport\Exceptions\HttpException;
 use Illuminate\Support\Arr;
@@ -12,6 +12,29 @@ use Psr\Http\Message\ResponseInterface;
 
 trait HttpRequest
 {
+    protected static $httpClient;
+
+    /**
+     * head 请求 测试超链接的有效性、可用性
+     * @param string $uri
+     * @return bool
+     */
+    public static function head($uri = '')
+    {
+        $client = static::getClient(['timeout' => 3]);
+        try {
+            $response = $client->head($uri);
+        } catch (GuzzleException $e) {
+            Log::error($e->getMessage());
+            return false;
+        }
+
+        if ($response->getStatusCode() == 200) {
+            return true;
+        }
+        return false;
+    }
+
     /**
      * Make a get request.
      *
@@ -19,16 +42,17 @@ trait HttpRequest
      * @param array $query
      * @param array $config
      * @return ResponseInterface|array|string
+     * @throws HttpException
      */
     public static function get($uri = '', $query = [], $config = [])
     {
         try {
-            $response = self::request('get', $uri, $query, $config, 'query');
+            $response = static::request('get', $uri, $query, $config, 'query');
         } catch (HttpException $e) {
-            return false;
+            throw $e;
         }
 
-        return self::unwrapResponse($response);
+        return static::unwrapResponse($response);
     }
 
     /**
@@ -38,16 +62,17 @@ trait HttpRequest
      * @param array $params
      * @param array $config
      * @return ResponseInterface|array|string
+     * @throws HttpException
      */
     public static function post($uri = '', $params = [], $config = [])
     {
         try {
-            $response = self::request('post', $uri, $params, $config, 'form_params');
+            $response = static::request('post', $uri, $params, $config);
         } catch (HttpException $e) {
-            return false;
+            throw $e;
         }
 
-        return self::unwrapResponse($response);
+        return static::unwrapResponse($response);
     }
 
     /**
@@ -57,16 +82,17 @@ trait HttpRequest
      * @param array $params
      * @param array $config
      * @return ResponseInterface|array|string
+     * @throws HttpException
      */
     public static function postJson($uri = '', $params = [], $config = [])
     {
         try {
-            $response = self::request('post', $uri, $params, $config, 'json');
+            $response = static::request('post', $uri, $params, $config, 'json');
         } catch (HttpException $e) {
-            return false;
+            throw $e;
         }
 
-        return self::unwrapResponse($response);
+        return static::unwrapResponse($response);
     }
 
     /**
@@ -181,7 +207,7 @@ trait HttpRequest
      */
     public static function concurrency($base_uri = '', $sub_uri = [])
     {
-        $client = self::getClient(['base_uri' => $base_uri]);
+        $client = static::getClient(['base_uri' => $base_uri]);
 
         $promises = [];
         foreach ($sub_uri as $uri) {
@@ -203,9 +229,12 @@ trait HttpRequest
      * @param array $options
      * @return \GuzzleHttp\Client
      */
-    protected static function getClient(array $options = [])
+    public static function getClient(array $options = [])
     {
-        return new Client($options);
+        if (is_null(self::$httpClient)) {
+            self::$httpClient = new Client($options);
+        }
+        return self::$httpClient;
     }
 
     /**
@@ -223,7 +252,7 @@ trait HttpRequest
         if (false !== stripos($contentType, 'json') || stripos($contentType, 'javascript')) {
             return json_decode($contents, true);
         } elseif (false !== stripos($contentType, 'xml')) {
-            return json_decode(json_encode(simplexml_load_string($contents)), true);
+            return json_decode(json_encode(simplexml_load_string($contents, 'SimpleXMLElement', LIBXML_NOCDATA), JSON_UNESCAPED_UNICODE), true);
         }
 
         return $contents;

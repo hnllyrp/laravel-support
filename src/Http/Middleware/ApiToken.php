@@ -3,6 +3,7 @@
 namespace Hnllyrp\LaravelSupport\Http\Middleware;
 
 use Closure;
+use Hnllyrp\LaravelSupport\Exceptions\HttpException;
 use Hnllyrp\LaravelSupport\Services\Common\JwtService;
 use Hnllyrp\LaravelSupport\Support\Traits\HttpResponse;
 
@@ -25,7 +26,11 @@ class ApiToken
         // 验证登录
         $user_id = $this->authorization();
         if (!$user_id) {
-            return $this->setErrorCode(12)->fail(trans('user.not_login'));
+            if ($request->expectsJson()) {
+                return $this->setErrorCode(12)->fail(trans('user.not_login'));
+            }
+            throw new HttpException(trans('user.not_login'), 12);
+            // return $this->setErrorCode(12)->fail(trans('user.not_login'));
         }
 
         // 已登录返回 user_id

@@ -28,7 +28,6 @@ class HttpException extends Exception
         if ($request->expectsJson()) {
             return response()->json(['message' => $this->getMessage()], $this->getCode());
         }
-
-        return response()->view('errors.500', ['message' => $this->getMessage(), 'code' => $this->getCode()]);
+        return response()->view('errors.404', ['message' => $this->getMessage(), 'code' => $this->getCode()]);
     }
 }

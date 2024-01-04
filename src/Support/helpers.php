@@ -359,3 +359,23 @@ if (!function_exists('getServerIp')) {
     }
 }
 
+if (!function_exists('mobile_url')) {
+    /**
+     * 重定义 mobile_url 支持二级域名  mobile.abc.com
+     * @param string|null $path
+     * @param array $parameters
+     * @param bool|null $secure
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\Routing\UrlGenerator|string
+     */
+    function mobile_url($path = null, $parameters = [], $secure = null)
+    {
+        // mobile.abc.com
+        $mobile = config('kernel.mobile_domain');
+        if (blank($mobile)) {
+            return url('mobile/' . ltrim($path, '/'), $parameters, $secure);
+        }
+
+        return url($path, $parameters, $secure);
+    }
+}
+

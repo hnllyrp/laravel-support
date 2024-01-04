@@ -19,10 +19,11 @@ class JwtService
     public static function createToken($body, string $header = 'token')
     {
         $cfg = config('jwt');
-        $key = $cfg['key'] ?? 'example_key';
+        $key = $cfg['key'] ?? md5('key123456');
+        $expires = $cfg['expires'] ?? 30;
 
-        // 设置过期时间
-        $cfg['payload']['exp'] = Carbon::now()->addDays($cfg['expires'])->timestamp;
+        // 设置过期时间 单位：秒
+        $cfg['payload']['exp'] = Carbon::now()->addDays($expires)->timestamp;
         // 保存自定义信息 例如 user_id
         $cfg['payload']['body'] = $body ?? [];
 
@@ -40,12 +41,14 @@ class JwtService
      */
     public static function decodeToken($jwt)
     {
-        $key = config('jwt.key');
+        $key = config('jwt.key', md5('key123456'));
 
         try {
             $payload = JWT::decode($jwt, new Key($key, 'HS256'));
         } catch (ExpiredException $expiredException) {
-            Log::error('JWT decodeToken: ' . $expiredException->getMessage()); // token过期
+            if (config('app.debug')) {
+                Log::error('JWT decodeToken: ' . $expiredException->getMessage()); // token过期
+            }
             return 0;
         } catch (\Exception $e) {
             if (config('app.debug')) {
@@ -54,7 +57,7 @@ class JwtService
             return 0;
         }
 
-        return collect($payload)->get('body');
+        return collect($payload)->get('body', 0);
     }
 
     /**
@@ -65,7 +68,7 @@ class JwtService
      */
     public static function refreshToken($jwt, string $header = 'token')
     {
-        $key = config('jwt.key');
+        $key = config('jwt.key', md5('key123456'));
 
         try {
             $payload = JWT::decode($jwt, new Key($key, 'HS256'));
@@ -78,9 +81,10 @@ class JwtService
             }
 
             return [$header => $jwt, 'expire' => $expire];
-
         } catch (ExpiredException $expiredException) {
-            Log::error('JWT refreshToken : ' . $expiredException->getMessage()); // token过期
+            if (config('app.debug')) {
+                Log::error('JWT refreshToken: ' . $expiredException->getMessage()); // token过期
+            }
             return 0;
         } catch (\Exception $e) {
             if (config('app.debug')) {

@@ -1,8 +1,6 @@
 <?php
 
-
 namespace Hnllyrp\LaravelSupport\Services\Demo;
-
 
 use App\Models\Users;
 use App\Services\RedisService;

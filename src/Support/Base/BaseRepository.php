@@ -145,7 +145,7 @@ abstract class BaseRepository
      */
     public function create($data)
     {
-        return $this->query()->firstOrCreate($data);
+        return $this->query()->create($data);
     }
 
     /**

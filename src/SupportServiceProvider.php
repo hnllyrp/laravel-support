@@ -69,8 +69,8 @@ class SupportServiceProvider extends ServiceProvider
          * prependMiddlewareToGroup 添加一个中间件至 中间组的开头
          * pushMiddlewareToGroup 添加一个中间件至 中间组的结束
          */
-        // $router = $this->app->make(\Illuminate\Routing\Router::class);
-        // $router->aliasMiddleware('api_token', \Hnllyrp\LaravelSupport\Middleware\ApiToken::class);
+        $router = $this->app->make(\Illuminate\Routing\Router::class);
+        $router->aliasMiddleware('api_token', \Hnllyrp\LaravelSupport\Http\Middleware\ApiToken::class);
         // $router->pushMiddlewareToGroup('api', \Hnllyrp\LaravelSupport\Middleware\ApiToken::class);
 
     }

@@ -2,7 +2,7 @@
 
 namespace Hnllyrp\LaravelSupport\Support\Eloquent;
 
-use App\Kernel\Package\Spatie\Activitylog\Traits\LogsActivity;
+use App\Package\Spatie\Activitylog\Traits\LogsActivity;
 use Hnllyrp\LaravelQueryCache\Traits\Cacheable;
 use Hnllyrp\LaravelSupport\Support\Traits\Filterable;
 use Hnllyrp\LaravelSupport\Support\Traits\HasBatch;
